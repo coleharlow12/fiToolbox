@@ -1,0 +1,1 @@
+This section contains a library of known substances and their reflectance/fluorescence spectrums
