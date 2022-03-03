@@ -34,7 +34,7 @@ inputs = p.Results;
 switch type
     case 'reflectance'
         
-        fName = fullfile(isetRootPath,'data','surfaces','reflectances','skin','macbethChart');
+        fName = fullfile(isetRootPath,'data','surfaces','reflectances','macbethChart');
         data = ieReadSpectra(fName,inputs.wave);
 
     case 'excitation'
