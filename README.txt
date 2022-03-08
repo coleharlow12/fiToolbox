@@ -36,8 +36,10 @@ dependencies (see below) are on the MATLAB path.
 2. Dependencies (required)
 --------------------------
 
-a. Image Systems Engineering Toolbox (ISET) (http://www.imageval.com).
+a. Image Systems Engineering Toolbox (ISET/isetcam) (https://github.com/ISET/isetcam).
 b. cvx Convex Optimization toolbox for Matlab (www.cvxr.com).
+c. Image Systems Engineering Toolbox requires the MATLAB Statistics and Machine Learning Toolbox
+d. Image Processing Toolbox MATLAB
 
 
 

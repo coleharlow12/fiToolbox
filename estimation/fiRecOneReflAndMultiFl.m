@@ -12,7 +12,7 @@ function [ reflEst, rfCoeffs, emEst, emCoeffs, exEst, exCoeffs, dMat, predRefl, 
 %    measVals - a (f x c) matrix containing pixel intensities of a 
 %      surface captured with f camera channels and under c
 %      different illuminants.
-%    camera - a (w x c) matrix containing the spectral responsivity
+%    cameraMat - a (w x c) matrix containing the spectral responsivity
 %      functions of the c camera channels sampled at w wavebands.
 %    cameraGain - a (f x c) matrix of linear camera model gains for each
 %      filter-channel combination.
@@ -100,17 +100,17 @@ p.addParamValue('pixelRef',false);
 p.parse(varargin{:});
 inputs = p.Results;
 
-nEmBasis = size(basisEm,2);
-nExBasis = size(basisEx,2);
-nReflBasis = size(basisRefl,2);
-nWaves = size(illuminant,1);
+nEmBasis = size(basisEm,2);         % number of emission basis
+nExBasis = size(basisEx,2);         % number of excitment basis
+nReflBasis = size(basisRefl,2);     % number of reflection basis
+nWaves = size(illuminant,1);        % number of wavelengths the data is available at
 
-scaleFac = max(cameraGain(:));
-cameraGain = cameraGain/scaleFac;
-illuminant = illuminant*scaleFac;
+scaleFac = max(cameraGain(:));      %Normalizes the camera gain 
+cameraGain = cameraGain/scaleFac;   %Normalizes the camera gain 
+illuminant = illuminant*scaleFac; 
 
 
-% Initialize variables
+% Initialize variables to zero
 y1 = zeros(nWaves,1);                  % Reflectance
 y2 = zeros(nWaves);                    % Fluorescence excitation-emission matrix
 y3 = zeros(nEmBasis,nExBasis);         % Fluorescence excitation-emission wieghts
@@ -133,8 +133,9 @@ sol = [];
 % of the matrices used in the matrix approach.
 % [~, ~, AtA1, Atb1] = generateLSMatrices(measVals,cameraMat,illuminant,cameraGain,basisRefl,basisEx,basisEm, alpha, beta, gamma);
 
-lowerTr = logical(tril(ones(nWaves),-1));
+lowerTr = logical(tril(ones(nWaves),-1)); %Extracts the lower triangle of a matrix
 
+%Stores data in a histogram
 hist.rho = ones(inputs.maxIter+1,1);
 hist.prRes = zeros(inputs.maxIter+1,1);
 hist.dualRes = zeros(inputs.maxIter+1,1);
@@ -169,6 +170,9 @@ for i=1:inputs.maxIter
     % Uncomment these lines to use matrix handle version of PCG
     b = applyAtb(measVals, cameraMat, illuminant, cameraGain, basisRefl, basisEx, basisEm, y1-u1, y2-u2, y3-u3, hist.rho(i)/2);
     AtAhndl = @(x) applyAtA(x, cameraMat, illuminant, cameraGain, basisRefl, basisEx, basisEm, hist.rho(i)/2, alpha, beta, gamma);
+    
+    %PCG Preconditioned Conjugate gradients method. Attempts to solve
+    %linear equations A*X=B for Xs
     [sol, ~, hist.pcgAcc(i), hist.pcgIter(i)] = pcg(AtAhndl,b,[],10000,[],[],sol);
     tElapsed = tElapsed + toc(t1);
     
@@ -414,6 +418,27 @@ function res = applyAtA(x, cameraMat, illuminant, cameraGain, reflBasis, exBasis
 end
 
 function res = applyAtb(measVals, cameraMat, illuminant, cameraGain, reflBasis, exBasis, emBasis, y1, y2, y3, rho)
+    %measVals is M in the paper and is the measured value of a pixel under
+    %the ith filter, jth illuminant, and kth pixel
+
+    %cameraMat is C in the paper and is the spectral response of the
+    %filters scaled by the quantum efficiency of the sensor. [c1,c2,..ci]
+    %where c are column vectors
+
+    %illuminant is matrix L in paper [l1,l2,...,lj] where l are column
+    %vectors
+
+    %cameraGain is G in the paper and is the camera gain for the ith
+    %filter and jth illuminant and the kth measurement in this case.
+
+    %reflBasis Br in the paper. Is the reflectance basis functions
+
+    %exBasis Bx in the paper. Is the excitation basis functions
+
+    %emBasis Bm in the paper. Is the emission basis functions. Columns are
+    %the basis functions of this matrix
+
+
 
     res1 = reflBasis'*diag(cameraMat*(cameraGain.*measVals)*illuminant') + rho*reflBasis'*y1;
     
