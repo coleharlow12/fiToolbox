@@ -143,8 +143,7 @@ end
 
 %% Plot the results
 
-
-figure;
+figure(1);
 hold all; grid on; box on;
 plot(measValsEst(:),measVals(:),'.');
 xlim([0 1]);
@@ -153,7 +152,7 @@ xlabel('Model predicted pixel value');
 ylabel('ISET pixel value');
 
 % Convergence
-figure;
+figure(2);
 for xx=1:6
 for yy=1:4
 
@@ -179,7 +178,7 @@ for i=1:nSamples
     reflErr = reflErr + hist{i}.reflErr;
 end
 
-figure; 
+figure(3); 
 hold on; grid on; box on;
 plot([pixelErr, dMatErr, reflErr]/nSamples);
 xlim([1 maxIter]);
@@ -189,7 +188,7 @@ legend({'Pixel','Donaldson','Reflectance'});
 
 
 % Estimated vs. ground truth reflectance
-figure;
+figure(4);
 for xx=1:6
 for yy=1:4
 
@@ -210,7 +209,7 @@ end
 end
 
 % Estimated vs. ground truth Donaldson matrices: scatter plot
-figure;
+figure(5);
 for xx=1:6
 for yy=1:4
 
@@ -228,7 +227,7 @@ end
 end
 
 % Estimated vs. ground truth Donaldson matrics: shape
-figure;
+figure(6);
 for xx=1:6
 for yy=1:4
 

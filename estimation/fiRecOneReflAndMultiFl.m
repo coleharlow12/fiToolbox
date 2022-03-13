@@ -81,7 +81,7 @@ function [ reflEst, rfCoeffs, emEst, emCoeffs, exEst, exCoeffs, dMat, predRefl, 
 %    hist - structure containing the objective function values at 
 %      successive minimization steps.
 %
-% Copytight, Henryk Blasinski 2016
+% Copyright, Henryk Blasinski 2016
 
 
 
@@ -109,7 +109,7 @@ scaleFac = max(cameraGain(:));      %Normalizes the camera gain
 cameraGain = cameraGain/scaleFac;   %Normalizes the camera gain 
 illuminant = illuminant*scaleFac; 
 
-
+%% Initialize The Algorithm
 % Initialize variables to zero
 y1 = zeros(nWaves,1);                  % Reflectance
 y2 = zeros(nWaves);                    % Fluorescence excitation-emission matrix
@@ -154,6 +154,7 @@ if ~isempty(inputs.reflRef)
     hist.reflErr = zeros(inputs.maxIter,1);
 end
 
+%% Iterative Solver
 
 tElapsed = 0; t2 = tic;
 for i=1:inputs.maxIter
@@ -438,8 +439,9 @@ function res = applyAtb(measVals, cameraMat, illuminant, cameraGain, reflBasis, 
     %emBasis Bm in the paper. Is the emission basis functions. Columns are
     %the basis functions of this matrix
 
+    %Descriptions of y1,y2,y3, and rho come from the appendix
 
-
+    %diag function takes diagonal 
     res1 = reflBasis'*diag(cameraMat*(cameraGain.*measVals)*illuminant') + rho*reflBasis'*y1;
     
     res2 = emBasis'*tril(cameraMat*(cameraGain.*measVals)*illuminant',-1)*exBasis + ...
