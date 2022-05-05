@@ -33,6 +33,10 @@ addpath(fullfile(fiToolboxRootPath,'scripts','simulations'));
 addpath(fullfile(fiToolboxRootPath,'scripts','experiments'));
 addpath(fullfile(fiToolboxRootPath,'scripts','plots'));
 
+%Added by Cole Harlow in order to simulate coral response to light
+addpath(fullfile(fiToolboxRootPath,'scripts','CoralSimulations'));
+addpath(fullfile(fiToolboxRootPath,'scripts','CoralSimulations','CoralFluorescence'));
+addpath(fullfile(fiToolboxRootPath,'scripts','CoralSimulations','CoralReflectance'));
 addpath(fullfile(fiToolboxRootPath,'utilities'));
 
 end
