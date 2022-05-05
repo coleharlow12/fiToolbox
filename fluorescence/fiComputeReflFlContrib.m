@@ -38,10 +38,8 @@ refl = zeros(nFilters, nChannels, nSamples);
 fl = zeros(nFilters, nChannels, nSamples);
 
 for s=1:nSamples
-
     refl(:,:,s) = cameraGain.*(camera'*diag(reflectance(:,s))*illuminant);
     fl(:,:,s) = cameraGain.*(camera'*dMat{s}*illuminant);
-
 end
 
 
