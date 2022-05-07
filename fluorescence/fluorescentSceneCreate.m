@@ -40,14 +40,14 @@ function [ flScene, fluorophoreIDs ] = fluorescentSceneCreate( varargin )
 %   'height' - the height (in fluorophores) of the scene (default = 1).
 %   'width' - the width (in fluorophores) of the scene (default = 1).
 %   'nFluorophores' - the number of fluorophores per spatial location
-%      (default = 1).
-%   'qe' - the quantum efficiency of a particular spatial location. If more
+%      (default = 1).*** IMPORTANT
+%   'qe' - the quantum efficiency of a particular spatial location. ***If more
 %      than one fluorophore per location is present then the qe is divided
 %      between number of fluorophores to represent the qe of the 'spatial
-%      location'
+%      location'***IMPORTANT
 %   'fluorophoreIDs' - a vector of flurophore identifiers that are read from
 %      the databse and used to create the scene (rather than using random 
-%      sampling).  
+%      sampling).  ***IMPORTANT
 %   'fluorophore' - a fluorophore structure used to generate a scene with
 %      one fluorophore.
 %
@@ -60,6 +60,7 @@ function [ flScene, fluorophoreIDs ] = fluorescentSceneCreate( varargin )
 
 p = inputParser;
 
+% Sets all values to default
 p.addParamValue('type','default',@ischar);
 p.addParamValue('dataset','McNamara-Boswell',@(x) strcmp(x,validatestring(x,{'McNamara-Boswell','LifeTechnologies'})))
 p.addParamValue('wave',400:10:700,@isvector);
@@ -83,11 +84,14 @@ flScene = initDefaultSpectrum(flScene,'custom',inputs.wave);
 
 switch inputs.type
 
+    %Single Fluorophore for the entire chart, user provides fluorophore
+    %name
     case {'fromfluorophore'}
         flScene = fluorescentSceneSet(flScene,'fluorophores',inputs.fluorophore);        
         flScene = fluorescentSceneSet(flScene,'qe',inputs.qe);
         fluorophoreIDs = [];
 
+    %Single 
     case {'onefluorophore','singlefluorophore'}
         setName = fullfile(fiToolboxRootPath,'data',inputs.dataset);
         flSet = fiReadFluorophoreSet(setName,'wave',inputs.wave,...
@@ -102,13 +106,19 @@ switch inputs.type
     case 'default'
         % Create a default fluorescent scene
         setName = fullfile(fiToolboxRootPath,'data',inputs.dataset);
+
+        %Reads all fluorophores in the dataset which meet the requirements
+        %given
         [flSet, fluorophoreIDs] = fiReadFluorophoreSet(setName,'wave',inputs.wave,...
             'stokesShiftRange',inputs.stokesShiftRange,...
             'peakEmRange',inputs.peakEmRange,...
             'peakExRange',inputs.peakExRange);
         
+        %Total number of fluorophores used across the entire scene (not
+        %just one spatial location)
         nFluorophores = inputs.height*inputs.width*inputs.nFluorophores;
         
+        %Creates random integers to select fluorophores
         ids = randi(length(flSet),nFluorophores,1);
         selFl = flSet(ids);
         fluorophoreIDs = fluorophoreIDs(ids);

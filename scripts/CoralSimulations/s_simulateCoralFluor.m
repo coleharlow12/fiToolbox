@@ -60,7 +60,7 @@ camera = diag(qe)*filters;
 nFilters = size(camera,2);
 
 %% Scene Creation
-% Create reflective scene *** NEED TO UNDERSTAND ***
+% Create reflective scene
 % 1) Don't worry about illuminant that is set later
 % 2) The filter is also set later
 
@@ -78,6 +78,7 @@ scene = sceneSet(scene,'fov',5);
 % Sets the scene distance to 1m
 scene = sceneSet(scene,'distance',1);
 
+%Gets the height and width of reflectance chart
 height = size(scene.chartP.XYZ,1);
 width = size(scene.chartP.XYZ,2);
 
@@ -91,7 +92,7 @@ fName = which('SurfacereflectanceGreen.mat');
 % multiple times
 reflRef = repmat(ieReadSpectra(fName,wave),1,height*width);
 
-% Create fluorescent scene. *** NEED TO UNDERSTAND ***
+%% Create fluorescent scene.
 % We select fluorophores with peak excitation and emission somewhat within
 % the minimum and maximum spectral sampling wavelengths.
 % Cole: this function will need to be expanded to load in specific
@@ -154,19 +155,16 @@ for f=1:nFilters
 
         % This can be done using sensorGet.m instead of the current file
         [cameraGain(f,ch), cameraOffset(f,ch)] = sensorGainAndOffset(localScene,oi,sensor);
-        %cameraGain(f,ch) = sensorGet(sensor,'analog Gain');
-        %cameraOffset(f,ch) = sensorGet(sensor,'analog Offset');
         
         sensor = sensorCompute(sensor,oi);
         ieAddObject(sensor);
-        
-        
+         
         % Finds corner pixels of the sensor
         sSize = sensorGet(sensor,'size');
         cornerPoints = [1 sSize(1); sSize(2) sSize(1); sSize(2) 1; 1 1];
        
         %Gets the value of the pixels in a given patch
-        mVals = macbethSelect(sensor,1,1,cornerPoints,height,width);
+        mVals = macbethSelect(sensor,0,1,cornerPoints,height,width);
         mVals = cellfun(@(x) nanmean(x)/(2^sensorGet(sensor,'nbits')),mVals);
         %nanmean takes mean while ignoring any nan inputs
         %nbits is the number of bits in the quantization method
@@ -185,8 +183,10 @@ sensorWindow;
 
 illuminantPhotons = Energy2Quanta(wave,illuminant);
 
+
 [reflValsRef, flValsRef] = fiComputeReflFlContrib(camera,illuminantPhotons,cameraGain*deltaL,reflRef,dMatRef);
 
+% linearly predicted values (not using ISETcam repo)
 predVals = reflValsRef + flValsRef + repmat(cameraOffset,[1 1 width*height]);
 
 % Create a scatter plot between the simulated data and the linear model
