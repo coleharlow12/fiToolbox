@@ -14,8 +14,8 @@ ieInit;
 
 dataset = 'McNamara-Boswell';   % Database from which fluorophores are selected
 flQe = 1;                       % Fluorescence practical quantum efficiency
-height = 4;                     % Number of test patches (height x width)
-width = 6;
+height = 6;                     % Number of test patches (height x width)
+width = 4;
 nFluorophores = 1;              % Number of fluorophores per test patch
 
 % Save data to file if saveFName ~= []

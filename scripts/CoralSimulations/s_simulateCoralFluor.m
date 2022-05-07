@@ -1,13 +1,13 @@
 % Use Image Systems Engineering Toolbox to simulate a set of captures using
 % a model of the image acquisition system. Create a fluorescent scene with
 % the fiToolbox functions. The captured data contains simulated pixel intensities
-% for each of the 24 patches illuminated with each of the 14 narrowband 
+% for each of the x patches illuminated with each of the 14 narrowband 
 % lights and as seen through each of the 8 camera filters.
 %
 % Copyright, Henryk Blasinski 2016.
 
 % The following variables should be saved after running this script
-% cameraGain
+%cameraGain
 %dMatRef
 %emRef
 %exRef
@@ -27,8 +27,8 @@ dataset = 'McNamara-Boswell';   % Database from which fluorophores are selected
 flQe = 1;                       % Fluorescence practical quantum efficiency
                                     % To get this value for Corals see
                                     % Readme.txt in CoralRead
-height = 4;                     % Number of test patches (height x width)
-width = 6;
+row = 2;                     % Number of test patches (height x width)
+col = 3;
 nFluorophores = 1;              % Number of fluorophores per test patch
 
 % Save data to file if saveFName ~= []
@@ -64,21 +64,32 @@ nFilters = size(camera,2);
 % 1) Don't worry about illuminant that is set later
 % 2) The filter is also set later
 
-scene = sceneCreate('macbethEE_IR','',wave);
-%scene = sceneCreate('')
+%scene = sceneCreate('macbethEE_IR','',wave);
+sFiles{1} = which('SurfacereflectanceGreen.mat');
+sSamples = {[1 1 1 1 1 1]};
+pSize    = 16;           % Patch size
+grayFlag = 0;            % No gray strip
+sampling = 'replacement';
+
+scene = sceneCreate('reflectance chart',pSize,sSamples,sFiles,wave,grayFlag,sampling);
 
 % Sets field of view to 5 degrees
 scene = sceneSet(scene,'fov',5);
 % Sets the scene distance to 1m
 scene = sceneSet(scene,'distance',1);
 
+height = size(scene.chartP.XYZ,1);
+width = size(scene.chartP.XYZ,2);
+
 % Location of the spectral data to be read
-fName = fullfile(isetRootPath,'data','surfaces','reflectances','macbethChart');
+%fName = fullfile(isetRootPath,'data','surfaces','reflectances','macbethChart');
+fName = which('SurfacereflectanceGreen.mat');
 
 % Interpolates the referenced file to the wavelengths examined, this is the
 % known reference. Note that the sceneCreate function references the same
-% data
-reflRef = ieReadSpectra(fName,wave);
+% data. Since I only use one reflectance spectrum I have to repeat it
+% multiple times
+reflRef = repmat(ieReadSpectra(fName,wave),1,height*width);
 
 % Create fluorescent scene. *** NEED TO UNDERSTAND ***
 % We select fluorophores with peak excitation and emission somewhat within
@@ -103,7 +114,7 @@ cameraExposure = zeros(nFilters,nChannels);
 cameraGain = zeros(nFilters,nChannels);
 cameraOffset = zeros(nFilters,nChannels);
 
-measVals = zeros(nFilters,nChannels,24);
+measVals = zeros(nFilters,nChannels,width*height);
 
 %Loops through each filter
 for f=1:nFilters
@@ -150,12 +161,15 @@ for f=1:nFilters
         ieAddObject(sensor);
         
         
-        % Read out pixel intensities
+        % Finds corner pixels of the sensor
         sSize = sensorGet(sensor,'size');
         cornerPoints = [1 sSize(1); sSize(2) sSize(1); sSize(2) 1; 1 1];
        
-        mVals = macbethSelect(sensor,0,1,cornerPoints);
+        %Gets the value of the pixels in a given patch
+        mVals = macbethSelect(sensor,1,1,cornerPoints,height,width);
         mVals = cellfun(@(x) nanmean(x)/(2^sensorGet(sensor,'nbits')),mVals);
+        %nanmean takes mean while ignoring any nan inputs
+        %nbits is the number of bits in the quantization method
 
         
         measVals(f,ch,:) = mVals;  
@@ -173,7 +187,7 @@ illuminantPhotons = Energy2Quanta(wave,illuminant);
 
 [reflValsRef, flValsRef] = fiComputeReflFlContrib(camera,illuminantPhotons,cameraGain*deltaL,reflRef,dMatRef);
 
-predVals = reflValsRef + flValsRef + repmat(cameraOffset,[1 1 24]);
+predVals = reflValsRef + flValsRef + repmat(cameraOffset,[1 1 width*height]);
 
 % Create a scatter plot between the simulated data and the linear model
 % data. If everything is OK the points should be on the identity line.
